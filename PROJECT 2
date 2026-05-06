@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerStream | Job Portal</title>
+    <style>
+        :root { --primary: #2563eb; --dark: #1e293b; --light: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; }
+        header { background: var(--dark); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; }
+        .container { padding: 2rem 5%; }
+        
+        /* Dashboard Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h3 { margin-top: 0; color: var(--primary); }
+        
+        /* Forms */
+        .admin-section { background: #e2e8f0; padding: 2rem; border-radius: 8px; margin-bottom: 2rem; }
+        input, textarea, select { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.9; }
+        
+        .tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; }
+        .hidden { display: none; }
+        .nav-links span { cursor: pointer; margin-left: 20px; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>CareerStream</h2>
+    <div class="nav-links">
+        <span onclick="toggleView('user')">Find Jobs</span>
+        <span onclick="toggleView('admin')">Employer Console</span>
+    </div>
+</header>
+
+<div class="container">
+    <div id="admin-view" class="hidden">
+        <div class="admin-section">
+            <h3>Post a New Job</h3>
+            <input type="text" id="jobTitle" placeholder="Job Title (e.g. Senior Developer)">
+            <input type="text" id="company" placeholder="Company Name">
+            <input type="text" id="location" placeholder="Location">
+            <textarea id="desc" placeholder="Job Description"></textarea>
+            <button onclick="addJob()">Post Job Listing</button>
+        </div>
+    </div>
+
+    <div id="user-view">
+        <div style="margin-bottom: 2rem;">
+            <input type="text" id="searchInput" onkeyup="filterJobs()" placeholder="Search by title, company, or location...">
+        </div>
+        <div id="job-list" class="grid">
+            </div>
+    </div>
+</div>
+
+<script>
+    // Initial Mock Data
+    let jobs = JSON.parse(localStorage.getItem('jobs')) || [
+        { id: 1, title: "Frontend Engineer", company: "TechCorp", location: "Remote", desc: "Expertise in React and CSS required." },
+        { id: 2, title: "Data Scientist", company: "DataViz", location: "New York", desc: "Strong SQL and Python skills." }
+    ];
+
+    function renderJobs() {
+        const jobList = document.getElementById('job-list');
+        jobList.innerHTML = '';
+        
+        jobs.forEach(job => {
+            jobList.innerHTML += `
+                <div class="card">
+                    <span class="tag">${job.location}</span>
+                    <h3>${job.title}</h3>
+                    <p><strong>${job.company}</strong></p>
+                    <p>${job.desc}</p>
+                    <button onclick="applyJob('${job.title}')">Apply Now</button>
+                    <button style="background:#ef4444; margin-left:5px;" onclick="deleteJob(${job.id})" class="admin-only ${document.getElementById('admin-view').classList.contains('hidden') ? 'hidden' : ''}">Delete</button>
+                </div>
+            `;
+        });
+        localStorage.setItem('jobs', JSON.stringify(jobs));
+    }
+
+    function addJob() {
+        const title = document.getElementById('jobTitle').value;
+        const company = document.getElementById('company').value;
+        const location = document.getElementById('location').value;
+        const desc = document.getElementById('desc').value;
+
+        if(title && company) {
+            const newJob = { id: Date.now(), title, company, location, desc };
+            jobs.push(newJob);
+            renderJobs();
+            alert("Job posted successfully!");
+            // Clear inputs
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+        } else {
+            alert("Please fill in Title and Company");
+        }
+    }
+
+    function deleteJob(id) {
+        jobs = jobs.filter(j => j.id !== id);
+        renderJobs();
+    }
+
+    function applyJob(title) {
+        alert(`Application sent for: ${title}! \n(In a real system, your resume would be uploaded now).`);
+    }
+
+    function filterJobs() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(query) ? 'block' : 'none';
+        });
+    }
+
+    function toggleView(view) {
+        if(view === 'admin') {
+            document.getElementById('admin-view').classList.remove('hidden');
+            renderJobs(); // Re-render to show delete buttons
+        } else {
+            document.getElementById('admin-view').classList.add('hidden');
+            renderJobs();
+        }
+    }
+
+    // Initial Load
+    renderJobs();
+</script>
+
+</body>
+</html>
